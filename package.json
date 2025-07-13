@@ -1,0 +1,30 @@
+{
+  "name": "hc-club-referral-bot",
+  "version": "1.0.0",
+  "description": "Slack Bot for generating Hack Club club referral codes",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emergenitro/club_ambassadors.git"
+  },
+  "keywords": [
+    "slack",
+    "bot",
+    "referral"
+  ],
+  "author": "Karthik Sankar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emergenitro/club_ambassadors/issues"
+  },
+  "homepage": "https://github.com/emergenitro/club_ambassadors#readme",
+  "dependencies": {
+    "@slack/bolt": "^4.4.0",
+    "airtable-plus": "^1.0.4",
+    "dotenv": "^17.2.0"
+  }
+}
