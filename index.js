@@ -21,9 +21,10 @@ function createNewCode(username) {
 }
 
 
-app.command('/referclub', async ({ command, ack, respond }) => {
+app.command('/referclub', async ({ command, ack, respond, client }) => {
     await ack();
     try {
+        let userInfo = await client.users.info({ user: command.user_id });
         const userId = command.user_id;
         const displayName = command.real_name || command.user_name;
 
@@ -41,7 +42,8 @@ app.command('/referclub', async ({ command, ack, respond }) => {
                 'referralCode': referralCode,
                 'createdAt': new Date().toISOString(),
                 'referralCount': 0,
-                'isActive': true
+                'isActive': true,
+                'email': userInfo.user.profile.email || null
             });
             isNewCode = true;
         } else {
