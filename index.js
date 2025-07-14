@@ -20,12 +20,12 @@ function createNewCode(username) {
     return referralCode;
 }
 
-
 app.command('/referclub', async ({ command, ack, respond, client }) => {
     await ack();
 
-    const loadingResponse = await respond({
-        response_type: 'ephemeral',
+    const loadingMessage = await client.chat.postEphemeral({
+        channel: command.channel_id,
+        user: command.user_id,
         text: ':loading: Generating your referral code...'
     });
 
@@ -34,9 +34,9 @@ app.command('/referclub', async ({ command, ack, respond, client }) => {
         const userId = command.user_id;
         const displayName = command.real_name || command.user_name;
 
-        await respond({
-            response_type: 'ephemeral',
-            replace_original: true,
+        await client.chat.update({
+            channel: command.channel_id,
+            ts: loadingMessage.ts,
             text: ':thinkies: Checking for existing referral codes...'
         });
 
@@ -48,9 +48,9 @@ app.command('/referclub', async ({ command, ack, respond, client }) => {
         let isNewCode = false;
 
         if (!referralCodes || referralCodes.length === 0) {
-            await respond({
-                response_type: 'ephemeral',
-                replace_original: true,
+            await client.chat.update({
+                channel: command.channel_id,
+                ts: loadingMessage.ts,
                 text: ':angelparrot: Creating your new referral code...'
             });
             referralCode = createNewCode(displayName);
@@ -67,27 +67,28 @@ app.command('/referclub', async ({ command, ack, respond, client }) => {
             referralCode = referralCodes[0].fields['referralCode'];
         }
 
-        await respond({
-            response_type: 'ephemeral',
-            replace_original: true,
+        await client.chat.update({
+            channel: command.channel_id,
+            ts: loadingMessage.ts,
             text: isNewCode ? `A new referral code has been generated! :ultrafastparrot:\n\nYour referral code is: \`${referralCode}\`.\n\nShare this code with your friends to use when they apply for a club on apply.hackclub.com!` : `:white_check_mark: Found your existing referral code!\n\nYour existing referral code is: \`${referralCode}\`.\n\nShare this code with your friends to use when they apply for a club on apply.hackclub.com!`
         });
 
     } catch (error) {
         console.error('Error responding to command:', error);
-        await respond({
-            response_type: 'ephemeral',
-            replace_original: true,
+        await client.chat.update({
+            channel: command.channel_id,
+            ts: loadingMessage.ts,
             text: ':x: There was an error processing your request. Please try again later.'
         });
     }
 });
 
-app.command('/referralstats', async ({ command, ack, respond }) => {
+app.command('/referralstats', async ({ command, ack, respond, client }) => {
     await ack();
 
-    await respond({
-        response_type: 'ephemeral',
+    const loadingMessage = await client.chat.postEphemeral({
+        channel: command.channel_id,
+        user: command.user_id,
         text: ':chart_with_upwards_trend: Loading your referral statistics...'
     });
 
@@ -99,9 +100,9 @@ app.command('/referralstats', async ({ command, ack, respond }) => {
         });
 
         if (!referralCodes || referralCodes.length === 0) {
-            await respond({
-                response_type: 'ephemeral',
-                replace_original: true,
+            await client.chat.update({
+                channel: command.channel_id,
+                ts: loadingMessage.ts,
                 text: ':warning: You do not have a referral code yet. Use `/referclub` to generate one.'
             });
             return;
@@ -111,16 +112,16 @@ app.command('/referralstats', async ({ command, ack, respond }) => {
         const referralCount = referralCodes[0].fields['referralCount'] || 0;
         const referralGeneratedAt = new Date(referralCodes[0].fields['createdAt']).toLocaleDateString();
 
-        await respond({
-            response_type: 'ephemeral',
-            replace_original: true,
+        await client.chat.update({
+            channel: command.channel_id,
+            ts: loadingMessage.ts,
             text: `:bar_chart: Your Referral Statistics\n\nYour referral code is: \`${referralCode}\`\n\nYou have referred ${referralCount} people so far! Keep sharing your code! ${referralCount === 0 ? ':rocket:' : ':star:'}\n\nYour referral code was generated on: ${referralGeneratedAt}`
         });
     } catch (error) {
         console.error('Error responding to command:', error);
-        await respond({
-            response_type: 'ephemeral',
-            replace_original: true,
+        await client.chat.update({
+            channel: command.channel_id,
+            ts: loadingMessage.ts,
             text: ':x: There was an error processing your request. Please try again later.'
         });
     }
