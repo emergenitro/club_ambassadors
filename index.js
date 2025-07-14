@@ -23,10 +23,22 @@ function createNewCode(username) {
 
 app.command('/referclub', async ({ command, ack, respond, client }) => {
     await ack();
+
+    const loadingResponse = await respond({
+        response_type: 'ephemeral',
+        text: ':loading: Generating your referral code...'
+    });
+
     try {
         let userInfo = await client.users.info({ user: command.user_id });
         const userId = command.user_id;
         const displayName = command.real_name || command.user_name;
+
+        await respond({
+            response_type: 'ephemeral',
+            replace_original: true,
+            text: ':thinkies: Checking for existing referral codes...'
+        });
 
         const referralCodes = await referralTable.read({
             filterByFormula: `{slackID} = '${userId}'`
@@ -36,6 +48,11 @@ app.command('/referclub', async ({ command, ack, respond, client }) => {
         let isNewCode = false;
 
         if (!referralCodes || referralCodes.length === 0) {
+            await respond({
+                response_type: 'ephemeral',
+                replace_original: true,
+                text: ':angelparrot: Creating your new referral code...'
+            });
             referralCode = createNewCode(displayName);
             await referralTable.create({
                 'slackID': userId,
@@ -52,20 +69,27 @@ app.command('/referclub', async ({ command, ack, respond, client }) => {
 
         await respond({
             response_type: 'ephemeral',
-            text: isNewCode ? `A new referral code has been generated! :ultrafastparrot:\n\nYour referral code is: \`${referralCode}\`.\n\nShare this code with your friends to use when they apply for a club on apply.hackclub.com!` : `Your existing referral code is: \`${referralCode}\`.\n\nShare this code with your friends to use when they apply for a club on apply.hackclub.com!`
+            replace_original: true,
+            text: isNewCode ? `A new referral code has been generated! :ultrafastparrot:\n\nYour referral code is: \`${referralCode}\`.\n\nShare this code with your friends to use when they apply for a club on apply.hackclub.com!` : `:white_check_mark: Found your existing referral code!\n\nYour existing referral code is: \`${referralCode}\`.\n\nShare this code with your friends to use when they apply for a club on apply.hackclub.com!`
         });
 
     } catch (error) {
         console.error('Error responding to command:', error);
         await respond({
             response_type: 'ephemeral',
-            text: 'There was an error processing your request. Please try again later.'
+            replace_original: true,
+            text: ':x: There was an error processing your request. Please try again later.'
         });
     }
 });
 
 app.command('/referralstats', async ({ command, ack, respond }) => {
     await ack();
+
+    await respond({
+        response_type: 'ephemeral',
+        text: ':chart_with_upwards_trend: Loading your referral statistics...'
+    });
 
     try {
         const userId = command.user_id;
@@ -77,7 +101,8 @@ app.command('/referralstats', async ({ command, ack, respond }) => {
         if (!referralCodes || referralCodes.length === 0) {
             await respond({
                 response_type: 'ephemeral',
-                text: 'You do not have a referral code yet. Use `/referclub` to generate one.'
+                replace_original: true,
+                text: ':warning: You do not have a referral code yet. Use `/referclub` to generate one.'
             });
             return;
         }
@@ -88,13 +113,15 @@ app.command('/referralstats', async ({ command, ack, respond }) => {
 
         await respond({
             response_type: 'ephemeral',
-            text: `Your referral code is: \`${referralCode}\`\n\nYou have referred ${referralCount} people so far! Keep sharing your code! ${(refferalCount = 0) ? ':rocket:' : ''}\n\nYour referral code was generated on: ${referralGeneratedAt}`
+            replace_original: true,
+            text: `:bar_chart: Your Referral Statistics\n\nYour referral code is: \`${referralCode}\`\n\nYou have referred ${referralCount} people so far! Keep sharing your code! ${referralCount === 0 ? ':rocket:' : ':star:'}\n\nYour referral code was generated on: ${referralGeneratedAt}`
         });
     } catch (error) {
         console.error('Error responding to command:', error);
         await respond({
             response_type: 'ephemeral',
-            text: 'There was an error processing your request. Please try again later.'
+            replace_original: true,
+            text: ':x: There was an error processing your request. Please try again later.'
         });
     }
 });
